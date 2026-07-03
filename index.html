@@ -3,7 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>応募対応履歴 ETL / Excel出力ツール</title>
+  <title>応募対応履歴 分析ツール</title>
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png" />
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+  <link rel="manifest" href="./site.webmanifest" />
 
   <!--
     GitHub Pages で index.html 単体運用する想定です。
@@ -704,12 +710,17 @@
       border-radius: 13px;
       display: grid;
       place-items: center;
-      background: linear-gradient(135deg, #2563eb, #0f766e);
-      color: #ffffff;
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: .02em;
+      overflow: hidden;
+      background: transparent;
       box-shadow: 0 10px 22px rgba(37, 99, 235, .18);
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      border-radius: 13px;
     }
 
     .brand-copy {
@@ -940,16 +951,18 @@
     .result-sticky-header {
       position: sticky;
       top: 0;
-      z-index: 60;
+      z-index: 80;
       min-width: 0;
       margin: 0 -18px 0;
-      overflow: hidden;
-      background: #ffffff;
+      overflow: visible;
+      background: #f6f8fb;
       border-bottom: 1px solid rgba(219, 227, 239, .95);
       box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
     }
 
     .result-topbar {
+      position: relative;
+      z-index: 1;
       padding: 14px 18px 8px;
       display: flex;
       align-items: flex-start;
@@ -1022,6 +1035,8 @@
 
 
     .result-view-mode-toggle {
+      position: relative;
+      z-index: 1;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -1072,6 +1087,8 @@
     }
 
     .result-table-nav {
+      position: relative;
+      z-index: 5;
       display: flex;
       gap: 8px;
       min-width: 0;
@@ -1104,6 +1121,8 @@
     }
 
     .result-table-nav-btn {
+      position: relative;
+      z-index: 2;
       flex: 0 0 auto;
       border: 1px solid rgba(37, 99, 235, .18);
       background: #f8fbff;
@@ -1128,6 +1147,93 @@
       color: #ffffff;
       border-color: #2563eb;
       box-shadow: 0 8px 16px rgba(37, 99, 235, .18);
+    }
+
+    .result-table-nav-btn.is-active:hover {
+      background: #2563eb;
+      color: #ffffff;
+      transform: none;
+    }
+
+    .result-table-nav-active-ring {
+      position: absolute;
+      z-index: 20;
+      pointer-events: none;
+      box-sizing: border-box;
+      border: 2px solid #f4c542;
+      border-radius: 999px;
+      background: transparent;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, .42),
+        0 0 0 1px rgba(210, 149, 18, .22),
+        0 2px 5px rgba(176, 116, 8, .16),
+        0 0 10px rgba(250, 204, 21, .36);
+      opacity: 0;
+      left: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      transform: translateZ(0);
+      transition-property: left, top, width, height, opacity;
+      transition-duration: .52s, .52s, .52s, .52s, .16s;
+      transition-timing-function: cubic-bezier(.22, 1, .36, 1), cubic-bezier(.22, 1, .36, 1), cubic-bezier(.22, 1, .36, 1), cubic-bezier(.22, 1, .36, 1), ease;
+      transition-delay: .13s, .13s, .13s, .13s, 0s;
+    }
+
+    .result-table-nav-active-ring::before {
+      display: none;
+    }
+
+    .result-table-nav-active-ring.is-visible {
+      opacity: 1;
+    }
+
+    .result-table-nav-active-ring.is-instant {
+      transition: none !important;
+    }
+
+    .result-table-nav-active-ring.is-landing-glow {
+      animation: resultNavRingLandingGlow .62s ease-out 1;
+    }
+
+    @keyframes resultNavRingLandingGlow {
+      0% {
+        background: transparent;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, .42),
+          0 0 0 1px rgba(210, 149, 18, .22),
+          0 2px 5px rgba(176, 116, 8, .16),
+          0 0 10px rgba(250, 204, 21, .36);
+        filter: none;
+      }
+      22% {
+        background: rgba(250, 204, 21, .14);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, .70),
+          0 0 0 1px rgba(255, 221, 87, .42),
+          0 5px 14px rgba(202, 138, 4, .28),
+          0 0 26px rgba(250, 204, 21, .74),
+          0 0 44px rgba(253, 224, 71, .34);
+        filter: drop-shadow(0 0 10px rgba(250, 204, 21, .46));
+      }
+      100% {
+        background: transparent;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, .42),
+          0 0 0 1px rgba(210, 149, 18, .22),
+          0 2px 5px rgba(176, 116, 8, .16),
+          0 0 10px rgba(250, 204, 21, .36);
+        filter: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .result-table-nav-active-ring {
+        transition: none !important;
+      }
+      .result-table-nav-active-ring.is-landing-glow {
+        animation: none !important;
+      }
     }
 
     .summary-card-grid {
@@ -1204,6 +1310,38 @@
     .aggregate-table-section h3 {
       margin: 0 0 5px;
       font-size: 17px;
+      border-radius: 12px;
+    }
+
+    .aggregate-table-section h3.is-landing-glow {
+      animation: aggregateTitleLandingGlow .72s ease-out 1;
+    }
+
+    @keyframes aggregateTitleLandingGlow {
+      0% {
+        background-color: rgba(250, 204, 21, 0);
+        box-shadow: 0 0 0 rgba(250, 204, 21, 0);
+        text-shadow: none;
+      }
+      24% {
+        background-color: rgba(254, 240, 138, .34);
+        box-shadow:
+          0 0 0 1px rgba(250, 204, 21, .22),
+          0 0 22px rgba(250, 204, 21, .32),
+          0 0 36px rgba(253, 224, 71, .18);
+        text-shadow: 0 0 14px rgba(250, 204, 21, .28);
+      }
+      100% {
+        background-color: rgba(250, 204, 21, 0);
+        box-shadow: 0 0 0 rgba(250, 204, 21, 0);
+        text-shadow: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .aggregate-table-section h3.is-landing-glow {
+        animation: none !important;
+      }
     }
 
     .diff-summary {
@@ -1758,7 +1896,7 @@
   <header>
     <div class="header-row">
       <div class="header-copy">
-        <h1>応募対応履歴 ETL / Excel出力ツール</h1>
+        <h1>応募対応履歴 分析ツール</h1>
         <p class="lead">
           応募対応履歴CSVを読み込み、応募者単位のサマリーとピボット集計用イベントデータをExcelファイルとして出力します。処理はブラウザ内で完結し、ファイルはサーバーに送信されません。
         </p>
@@ -1892,7 +2030,7 @@
       <aside id="resultSidebar" class="result-sidebar">
         <div class="result-sidebar-header">
           <div class="result-sidebar-brand">
-            <div class="brand-mark">ETL</div>
+            <div class="brand-mark"><img src="./sidebar-icon.png" alt="応募対応履歴 分析ツール アイコン" /></div>
             <div class="brand-copy">
               <strong>応募分析</strong>
               <span>条件設定</span>
@@ -2104,7 +2242,9 @@
       resultStickyHeaderObserver: null,
       aggregateStickyHeaderSourceId: '',
       aggregateStickyHeaderSignature: '',
-      aggregateStickyHeaderRaf: null
+      aggregateStickyHeaderRaf: null,
+      resultNavRingRaf: null,
+      resultNavGlowTimer: null
     };
 
     const requiredLibs = [
@@ -2280,6 +2420,8 @@
       els.aggregateTableArea.addEventListener('click', handleAggregateChartLabelToggleClick);
       if (els.resultViewModeToggle) els.resultViewModeToggle.addEventListener('click', handleResultViewModeClick);
       els.resultTableNav.addEventListener('click', handleResultTableNavClick);
+      els.resultTableNav.addEventListener('scroll', () => updateResultNavActiveRing({ instant: true }), { passive: true });
+      window.addEventListener('resize', () => updateResultNavActiveRing({ instant: true }));
       if (els.resultMain) els.resultMain.addEventListener('scroll', scheduleAggregateStickyHeaderUpdate, { passive: true });
       els.aggregateTableArea.addEventListener('scroll', scheduleAggregateStickyHeaderUpdate, true);
       if (els.aggregateStickyHeader) els.aggregateStickyHeader.addEventListener('click', handleAggregateSortClick);
@@ -3735,6 +3877,8 @@
       els.resultPage.classList.remove('hidden');
       requestAnimationFrame(() => {
         updateResultStickyOffset();
+        updateResultNavActiveRing({ instant: true });
+        requestAnimationFrame(() => updateResultNavActiveRing({ instant: true }));
         scheduleAggregateStickyHeaderUpdate();
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3874,13 +4018,136 @@
 
     function renderResultTableNav(tables) {
       if (!els.resultTableNav) return;
+      const previousRingRect = getResultNavActiveRingRect();
       const modeLabel = state.aggregateViewMode === 'all' ? '全表一覧の表ジャンプ' : '集計指標タブ';
       els.resultTableNav.setAttribute('aria-label', modeLabel);
+      ensureResultNavActiveRing();
       els.resultTableNav.innerHTML = tables.map(table => `
         <button class="result-table-nav-btn${state.activeAggregateTableId === table.id ? ' is-active' : ''}" type="button" data-target-table-id="${escapeHtml(table.id)}" aria-pressed="${state.activeAggregateTableId === table.id ? 'true' : 'false'}">
           ${escapeHtml(table.title)}
         </button>
       `).join('');
+      const nextRingRect = getResultNavActiveRingRect();
+      const animateFromPrevious = previousRingRect && nextRingRect && !sameResultNavRingRect(previousRingRect, nextRingRect);
+      updateResultNavActiveRing({
+        fromRect: animateFromPrevious ? previousRingRect : null,
+        instant: !animateFromPrevious
+      });
+      if (!animateFromPrevious) {
+        requestAnimationFrame(() => updateResultNavActiveRing({ instant: true }));
+      }
+    }
+
+    function ensureResultNavActiveRing() {
+      if (!els.resultStickyHeader) return null;
+      let ring = els.resultStickyHeader.querySelector(':scope > .result-table-nav-active-ring');
+      if (!ring) {
+        ring = document.createElement('span');
+        ring.className = 'result-table-nav-active-ring';
+        ring.setAttribute('aria-hidden', 'true');
+        els.resultStickyHeader.appendChild(ring);
+      }
+      return ring;
+    }
+
+    function hideResultNavActiveRing() {
+      const ring = els.resultStickyHeader ? els.resultStickyHeader.querySelector(':scope > .result-table-nav-active-ring') : null;
+      if (!ring) return;
+      ring.classList.remove('is-visible', 'is-landing-glow');
+    }
+
+    function getResultNavActiveRingRect() {
+      if (!els.resultTableNav || !els.resultStickyHeader) return null;
+      const btn = els.resultTableNav.querySelector('.result-table-nav-btn.is-active');
+      if (!btn) return null;
+      const btnRect = btn.getBoundingClientRect();
+      const headerRect = els.resultStickyHeader.getBoundingClientRect();
+      return {
+        left: btnRect.left - headerRect.left,
+        top: btnRect.top - headerRect.top,
+        width: btnRect.width,
+        height: btnRect.height
+      };
+    }
+
+    function sameResultNavRingRect(a, b) {
+      if (!a || !b) return false;
+      return Math.abs(a.left - b.left) < 1
+        && Math.abs(a.top - b.top) < 1
+        && Math.abs(a.width - b.width) < 1
+        && Math.abs(a.height - b.height) < 1;
+    }
+
+    function applyResultNavRingRect(ring, rect) {
+      if (!ring || !rect) return;
+      ring.style.left = `${rect.left}px`;
+      ring.style.top = `${rect.top}px`;
+      ring.style.width = `${rect.width}px`;
+      ring.style.height = `${rect.height}px`;
+    }
+
+    function updateResultNavActiveRing(options = {}) {
+      if (!els.resultTableNav) return;
+      if (state.resultNavRingRaf) cancelAnimationFrame(state.resultNavRingRaf);
+      const ring = ensureResultNavActiveRing();
+      const targetRect = getResultNavActiveRingRect();
+      if (!ring || !targetRect) {
+        hideResultNavActiveRing();
+        return;
+      }
+
+      if (options.fromRect) {
+        ring.classList.add('is-instant');
+        ring.classList.add('is-visible');
+        applyResultNavRingRect(ring, options.fromRect);
+        ring.getBoundingClientRect();
+        state.resultNavRingRaf = requestAnimationFrame(() => {
+          ring.classList.remove('is-instant');
+          applyResultNavRingRect(ring, targetRect);
+          scheduleResultSelectionLandingGlow();
+        });
+        return;
+      }
+
+      if (options.instant) ring.classList.add('is-instant');
+      applyResultNavRingRect(ring, targetRect);
+      ring.classList.add('is-visible');
+      if (options.instant) {
+        state.resultNavRingRaf = requestAnimationFrame(() => {
+          ring.classList.remove('is-instant');
+        });
+      }
+    }
+
+    function restartOneShotAnimation(el, className) {
+      if (!el) return;
+      el.classList.remove(className);
+      void el.offsetWidth;
+      el.classList.add(className);
+      const cleanup = () => el.classList.remove(className);
+      el.addEventListener('animationend', cleanup, { once: true });
+      window.setTimeout(cleanup, 900);
+    }
+
+    function scheduleResultSelectionLandingGlow() {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (state.resultNavGlowTimer) window.clearTimeout(state.resultNavGlowTimer);
+      state.resultNavGlowTimer = window.setTimeout(() => {
+        state.resultNavGlowTimer = null;
+        triggerResultSelectionLandingGlow();
+      }, 660);
+    }
+
+    function triggerResultSelectionLandingGlow() {
+      const ring = els.resultStickyHeader ? els.resultStickyHeader.querySelector(':scope > .result-table-nav-active-ring.is-visible') : null;
+      restartOneShotAnimation(ring, 'is-landing-glow');
+
+      if (!els.aggregateTableArea || !state.activeAggregateTableId) return;
+      const section = els.aggregateTableArea.querySelector(`#aggregate-table-${cssEscape(state.activeAggregateTableId)}`);
+      const targets = section
+        ? Array.from(section.querySelectorAll(':scope > h3'))
+        : Array.from(els.aggregateTableArea.querySelectorAll('.aggregate-table-section > h3'));
+      targets.forEach(target => restartOneShotAnimation(target, 'is-landing-glow'));
     }
 
     function buildAggregateTables(summaries, settings) {
@@ -5105,6 +5372,7 @@
       els.previewArea.innerHTML = '';
       els.summaryPills.innerHTML = '';
       if (els.resultTableNav) els.resultTableNav.innerHTML = '';
+      hideResultNavActiveRing();
       if (els.resultConditionChips) els.resultConditionChips.innerHTML = '';
       els.aggregateTableArea.innerHTML = '';
       hideAggregateStickyHeader();
@@ -5136,6 +5404,7 @@
       els.previewArea.innerHTML = '';
       els.summaryPills.innerHTML = '';
       if (els.resultTableNav) els.resultTableNav.innerHTML = '';
+      hideResultNavActiveRing();
       if (els.resultConditionChips) els.resultConditionChips.innerHTML = '';
       els.aggregateTableArea.innerHTML = '';
       hideAggregateStickyHeader();
