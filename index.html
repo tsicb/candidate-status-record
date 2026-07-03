@@ -1911,33 +1911,33 @@
       <div class="upload-grid">
         <div class="upload-panel">
           <p class="upload-panel-title">応募者情報CSV <span class="optional">推奨・母集団用</span></p>
-          <div id="applicantDropzone" class="dropzone" tabindex="0" role="button" aria-label="応募者情報CSVファイルを選択">
+          <div id="applicantDropzone" class="dropzone" tabindex="0" role="button" aria-label="応募者情報CSVファイルを選択（複数可）">
             <div class="dropzone-inner">
               <div id="applicantDropzoneIcon" class="dropzone-icon">👥</div>
               <div class="dropzone-copy">
                 <strong id="applicantDropzoneTitle">応募者情報CSVをドラッグ＆ドロップ</strong>
-                <span id="applicantDropzoneSubtext">任意。入れると未対応応募者も含めて集計します</span>
+                <span id="applicantDropzoneSubtext">任意。複数選択可。未対応応募者も含めて集計します</span>
               </div>
               <div id="applicantDropzoneLoadedMeta" class="dropzone-loaded-meta hidden"></div>
             </div>
           </div>
-          <input id="applicantFileInput" class="hidden" type="file" accept=".csv,text/csv" />
+          <input id="applicantFileInput" class="hidden" type="file" accept=".csv,text/csv" multiple />
           <div id="applicantFileMeta" class="meta hidden" aria-hidden="true">未読み込み</div>
         </div>
 
         <div class="upload-panel">
           <p class="upload-panel-title">対応履歴CSV <span class="optional">必須・アクション履歴用</span></p>
-          <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="対応履歴CSVファイルを選択">
+          <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="対応履歴CSVファイルを選択（複数可）">
             <div class="dropzone-inner">
               <div id="dropzoneIcon" class="dropzone-icon">📄</div>
               <div class="dropzone-copy">
                 <strong id="dropzoneTitle">対応履歴CSVをドラッグ＆ドロップ</strong>
-                <span id="dropzoneSubtext">またはクリックしてファイルを選択</span>
+                <span id="dropzoneSubtext">またはクリックしてファイルを選択（複数可）</span>
               </div>
               <div id="dropzoneLoadedMeta" class="dropzone-loaded-meta hidden"></div>
             </div>
           </div>
-          <input id="fileInput" class="hidden" type="file" accept=".csv,text/csv" />
+          <input id="fileInput" class="hidden" type="file" accept=".csv,text/csv" multiple />
           <div id="fileMeta" class="meta hidden" aria-hidden="true">未読み込み</div>
         </div>
       </div>
@@ -2213,15 +2213,17 @@
     'use strict';
 
     const state = {
-      // 対応履歴CSV（従来のメインCSV）
+      // 対応履歴CSV（従来のメインCSV。複数アップロード時は内部で結合）
       file: null,
+      files: [],
       encoding: '',
       text: '',
       headers: [],
       rows: [],
 
-      // 応募者情報CSV（任意。存在する場合はこちらを母集団にする）
+      // 応募者情報CSV（任意。存在する場合はこちらを母集団にする。複数アップロード時は内部で結合）
       applicantFile: null,
+      applicantFiles: [],
       applicantEncoding: '',
       applicantText: '',
       applicantHeaders: [],
@@ -2624,8 +2626,8 @@
         if (ev.key === 'Enter' || ev.key === ' ') input.click();
       });
       input.addEventListener('change', (ev) => {
-        const file = ev.target.files && ev.target.files[0];
-        if (file) loader(file);
+        const files = normalizeFilesInput(ev.target.files);
+        if (files.length) loader(files);
       });
       ['dragenter', 'dragover'].forEach(type => {
         zone.addEventListener(type, (ev) => {
@@ -2642,9 +2644,15 @@
         });
       });
       zone.addEventListener('drop', (ev) => {
-        const file = ev.dataTransfer.files && ev.dataTransfer.files[0];
-        if (file) loader(file);
+        const files = normalizeFilesInput(ev.dataTransfer.files);
+        if (files.length) loader(files);
       });
+    }
+
+    function normalizeFilesInput(fileInput) {
+      if (!fileInput) return [];
+      const files = Array.isArray(fileInput) ? fileInput : Array.from(fileInput);
+      return files.filter(file => file && file.name);
     }
 
     function setDropzoneIdle(zone, icon, title, subtext, meta, iconText, titleText, subtextText) {
@@ -2656,90 +2664,141 @@
       meta.innerHTML = '';
     }
 
-    function setDropzoneLoaded(zone, icon, title, subtext, meta, file, encoding, rowCount, colCount, label) {
+    function setDropzoneLoaded(zone, icon, title, subtext, meta, files, encoding, rowCount, colCount, label) {
+      const fileList = normalizeFilesInput(files);
+      const fileCount = fileList.length;
+      const totalSize = fileList.reduce((sum, file) => sum + (file.size || 0), 0);
       zone.classList.add('is-loaded');
       icon.textContent = '✓';
-      title.textContent = `${label}を読み込み済みです`;
-      subtext.textContent = '別ファイルを使う場合は、この枠をクリックまたはドラッグ＆ドロップしてください。';
+      title.textContent = fileCount > 1 ? `${label} ${fileCount}件を読み込み済みです` : `${label}を読み込み済みです`;
+      subtext.textContent = '別ファイルを使う場合は、この枠をクリックまたはドラッグ＆ドロップしてください。複数ファイルも選択できます。';
       meta.classList.remove('hidden');
+      const fileBadges = fileList.slice(0, 3).map(file => `<span class="file-badge file-name">📎 ${escapeHtml(file.name || '')}</span>`);
+      if (fileCount > 3) fileBadges.push(`<span class="file-badge">ほか${fileCount - 3}件</span>`);
       meta.innerHTML = [
-        `<span class="file-badge file-name">📎 ${escapeHtml(file.name || '')}</span>`,
-        `<span class="file-badge">${escapeHtml(formatFileSize(file.size || 0))}</span>`,
+        ...fileBadges,
+        `<span class="file-badge">合計 ${escapeHtml(formatFileSize(totalSize))}</span>`,
         `<span class="file-badge">${escapeHtml(encoding)}</span>`,
         `<span class="file-badge">${rowCount}行 / ${colCount}列</span>`
       ].join('');
     }
 
     function setHistoryDropzoneIdle() {
-      setDropzoneIdle(els.dropzone, els.dropzoneIcon, els.dropzoneTitle, els.dropzoneSubtext, els.dropzoneLoadedMeta, '📄', '対応履歴CSVをドラッグ＆ドロップ', 'またはクリックしてファイルを選択');
+      setDropzoneIdle(els.dropzone, els.dropzoneIcon, els.dropzoneTitle, els.dropzoneSubtext, els.dropzoneLoadedMeta, '📄', '対応履歴CSVをドラッグ＆ドロップ', 'またはクリックしてファイルを選択（複数可）');
     }
 
     function setApplicantDropzoneIdle() {
-      setDropzoneIdle(els.applicantDropzone, els.applicantDropzoneIcon, els.applicantDropzoneTitle, els.applicantDropzoneSubtext, els.applicantDropzoneLoadedMeta, '👥', '応募者情報CSVをドラッグ＆ドロップ', '任意。入れると未対応応募者も含めて集計します');
+      setDropzoneIdle(els.applicantDropzone, els.applicantDropzoneIcon, els.applicantDropzoneTitle, els.applicantDropzoneSubtext, els.applicantDropzoneLoadedMeta, '👥', '応募者情報CSVをドラッグ＆ドロップ', '任意。複数選択可。未対応応募者も含めて集計します');
     }
 
-    async function loadFile(file) {
+    async function loadFile(filesInput) {
       resetResultOnly();
-      state.file = file;
-      appendLog('対応履歴CSV 読み込み開始: ' + file.name);
+      const files = normalizeFilesInput(filesInput);
+      if (!files.length) return;
+      state.file = files[0];
+      state.files = files;
+      appendLog(`対応履歴CSV 読み込み開始: ${files.map(file => file.name).join(' / ')}`);
 
-      const parsed = await readCsvFile(file);
+      const parsed = await readCsvFiles(files, '対応履歴CSV');
       state.encoding = parsed.encoding;
       state.text = parsed.text;
       state.headers = parsed.headers;
       state.rows = parsed.rows;
 
-      els.fileMeta.textContent = buildFileMetaText(file, parsed.encoding, parsed.rows.length, parsed.headers.length);
+      els.fileMeta.textContent = buildFileMetaText(files, parsed.encoding, parsed.rows.length, parsed.headers.length);
       renderMappings();
       els.mappingCard.classList.remove('hidden');
       els.settingsCard.classList.remove('hidden');
       els.quickStatus.textContent = buildQuickStatusText();
       els.processBtn.disabled = state.rows.length === 0;
-      setDropzoneLoaded(els.dropzone, els.dropzoneIcon, els.dropzoneTitle, els.dropzoneSubtext, els.dropzoneLoadedMeta, file, parsed.encoding, parsed.rows.length, parsed.headers.length, '対応履歴CSV');
-      appendLog(`対応履歴CSV 読み込み完了: ${parsed.rows.length}行 / ${parsed.headers.length}列`);
+      setDropzoneLoaded(els.dropzone, els.dropzoneIcon, els.dropzoneTitle, els.dropzoneSubtext, els.dropzoneLoadedMeta, files, parsed.encoding, parsed.rows.length, parsed.headers.length, '対応履歴CSV');
+      appendLog(`対応履歴CSV 読み込み完了: ${files.length}件 / ${parsed.rows.length}行 / ${parsed.headers.length}列`);
     }
 
-    async function loadApplicantFile(file) {
+    async function loadApplicantFile(filesInput) {
       resetResultOnly();
-      state.applicantFile = file;
-      appendLog('応募者情報CSV 読み込み開始: ' + file.name);
+      const files = normalizeFilesInput(filesInput);
+      if (!files.length) return;
+      state.applicantFile = files[0];
+      state.applicantFiles = files;
+      appendLog(`応募者情報CSV 読み込み開始: ${files.map(file => file.name).join(' / ')}`);
 
-      const parsed = await readCsvFile(file);
+      const parsed = await readCsvFiles(files, '応募者情報CSV');
       state.applicantEncoding = parsed.encoding;
       state.applicantText = parsed.text;
       state.applicantHeaders = parsed.headers;
       state.applicantRows = parsed.rows;
 
-      els.applicantFileMeta.textContent = buildFileMetaText(file, parsed.encoding, parsed.rows.length, parsed.headers.length);
+      els.applicantFileMeta.textContent = buildFileMetaText(files, parsed.encoding, parsed.rows.length, parsed.headers.length);
       renderApplicantMappings();
       els.applicantMappingCard.classList.remove('hidden');
       els.settingsCard.classList.remove('hidden');
       els.quickStatus.textContent = buildQuickStatusText();
-      setDropzoneLoaded(els.applicantDropzone, els.applicantDropzoneIcon, els.applicantDropzoneTitle, els.applicantDropzoneSubtext, els.applicantDropzoneLoadedMeta, file, parsed.encoding, parsed.rows.length, parsed.headers.length, '応募者情報CSV');
-      appendLog(`応募者情報CSV 読み込み完了: ${parsed.rows.length}行 / ${parsed.headers.length}列`);
+      setDropzoneLoaded(els.applicantDropzone, els.applicantDropzoneIcon, els.applicantDropzoneTitle, els.applicantDropzoneSubtext, els.applicantDropzoneLoadedMeta, files, parsed.encoding, parsed.rows.length, parsed.headers.length, '応募者情報CSV');
+      appendLog(`応募者情報CSV 読み込み完了: ${files.length}件 / ${parsed.rows.length}行 / ${parsed.headers.length}列`);
+    }
+
+    async function readCsvFiles(filesInput, label) {
+      const files = normalizeFilesInput(filesInput);
+      const parsedFiles = [];
+      for (const file of files) {
+        const parsed = await readCsvFile(file);
+        parsed.file = file;
+        parsedFiles.push(parsed);
+        appendLog(`${label || 'CSV'} 個別読み込み: ${file.name} / ${parsed.rows.length}行 / ${parsed.headers.length}列 / ${parsed.encoding}`);
+      }
+      if (!parsedFiles.length) return { encoding: '', text: '', headers: [], rows: [] };
+      const baseHeaders = parsedFiles[0].headers || [];
+      parsedFiles.slice(1).forEach(parsed => validateCombinedHeaders(baseHeaders, parsed.headers || [], parsed.file && parsed.file.name, label));
+      const rows = parsedFiles.flatMap(parsed => parsed.rows || []);
+      const encodings = uniqueList(parsedFiles.map(parsed => parsed.encoding).filter(Boolean));
+      const encoding = encodings.length <= 1 ? (encodings[0] || '') : `混在: ${encodings.join(' / ')}`;
+      const text = parsedFiles.map(parsed => parsed.text || '').join('\n');
+      return { encoding, text, headers: baseHeaders, rows };
+    }
+
+    function validateCombinedHeaders(baseHeaders, headers, fileName, label) {
+      const base = baseHeaders.map(h => String(h || '').trim());
+      const current = headers.map(h => String(h || '').trim());
+      const exactMatch = base.length === current.length && base.every((h, idx) => h === current[idx]);
+      if (exactMatch) return;
+      const baseSet = new Set(base);
+      const currentSet = new Set(current);
+      const sameSet = baseSet.size === currentSet.size && base.every(h => currentSet.has(h));
+      if (sameSet) {
+        appendLog(`${label || 'CSV'}ヘッダー注意: ${fileName || ''} は列名は同じですが、列順が異なります。列名ベースで結合します。`);
+        return;
+      }
+      const missing = base.filter(h => !currentSet.has(h));
+      const extra = current.filter(h => !baseSet.has(h));
+      appendLog(`${label || 'CSV'}ヘッダー警告: ${fileName || ''} のヘッダーが1件目と一致しません。不足: ${missing.join(', ') || 'なし'} / 追加: ${extra.join(', ') || 'なし'}`);
     }
 
     async function readCsvFile(file) {
       const bytes = new Uint8Array(await file.arrayBuffer());
       const encoding = detectEncoding(bytes);
-      const text = decodeBytes(bytes, encoding).replace(/^\uFEFF/, '');
+      const text = decodeBytes(bytes, encoding).replace(/^﻿/, '');
       const parsed = window.Papa.parse(text, {
         header: true,
         skipEmptyLines: 'greedy',
-        transformHeader: h => String(h || '').replace(/^\uFEFF/, '').trim()
+        transformHeader: h => String(h || '').replace(/^﻿/, '').trim()
       });
       if (parsed.errors && parsed.errors.length) {
-        appendLog('CSVパース警告: ' + parsed.errors.slice(0, 5).map(e => e.message).join(' / '));
+        appendLog(`CSVパース警告 (${file.name}): ` + parsed.errors.slice(0, 5).map(e => e.message).join(' / '));
       }
       const headers = parsed.meta.fields || [];
       const rows = (parsed.data || []).filter(row => Object.values(row).some(v => String(v || '').trim() !== ''));
       return { encoding, text, headers, rows };
     }
 
-    function buildFileMetaText(file, encoding, rowCount, colCount) {
+    function buildFileMetaText(filesInput, encoding, rowCount, colCount) {
+      const files = normalizeFilesInput(filesInput);
+      const totalSize = files.reduce((sum, file) => sum + (file.size || 0), 0);
+      const names = files.map(file => file.name).join('\n');
       return [
-        `ファイル名: ${file.name}`,
-        `サイズ: ${formatFileSize(file.size)}`,
+        `ファイル数: ${files.length}`,
+        `ファイル名: ${names}`,
+        `合計サイズ: ${formatFileSize(totalSize)}`,
         `推定文字コード: ${encoding}`,
         `列数: ${colCount}`,
         `データ行数: ${rowCount}`
@@ -2748,9 +2807,9 @@
 
     function buildQuickStatusText() {
       const parts = [];
-      if (state.applicantRows.length) parts.push(`応募者情報CSV ${state.applicantRows.length}行`);
-      if (state.rows.length) parts.push(`対応履歴CSV ${state.rows.length}行`);
-      if (!state.rows.length) return '対応履歴CSVを読み込むと集計結果を表示できます。応募者情報CSVは任意ですが、入れると未対応応募者も含められます。';
+      if (state.applicantRows.length) parts.push(`応募者情報CSV ${state.applicantFiles.length || 1}件 / ${state.applicantRows.length}行`);
+      if (state.rows.length) parts.push(`対応履歴CSV ${state.files.length || 1}件 / ${state.rows.length}行`);
+      if (!state.rows.length) return '対応履歴CSVを読み込むと集計結果を表示できます。応募者情報CSVは任意ですが、入れると未対応応募者も含められます。複数CSVの同時読み込みにも対応しています。';
       return `${parts.join(' / ')}。必要に応じて条件を確認し、集計結果を表示できます。`;
     }
 
@@ -2906,7 +2965,7 @@
       state.result = result;
       state.currentLog = log;
       state.workbook = createWorkbook(result, mapping, applicantMapping, settings, log);
-      state.outputName = makeOutputName(state.file ? state.file.name : 'etl_result.csv');
+      state.outputName = makeOutputName(getOutputBaseInputName());
 
       renderResult(result, log);
       renderResultPage(result, log);
@@ -3630,9 +3689,11 @@
     function buildSettingsSheet(mapping, applicantMapping, settings) {
       return [
         { '項目': '出力日時', '値': formatDateTime(new Date()), '補足': '' },
-        { '項目': '対応履歴CSVファイル名', '値': state.file ? state.file.name : '', '補足': 'アクション履歴用' },
+        { '項目': '対応履歴CSVファイル数', '値': state.files.length || (state.file ? 1 : 0), '補足': 'アクション履歴用' },
+        { '項目': '対応履歴CSVファイル名', '値': getFileNamesForSettings(state.files, state.file), '補足': 'アクション履歴用' },
         { '項目': '対応履歴CSV推定文字コード', '値': state.encoding, '補足': '出力はxlsxのため文字コード差は基本的に意識不要' },
-        { '項目': '応募者情報CSVファイル名', '値': state.applicantFile ? state.applicantFile.name : '', '補足': '存在する場合は母集団として優先' },
+        { '項目': '応募者情報CSVファイル数', '値': state.applicantFiles.length || (state.applicantFile ? 1 : 0), '補足': '存在する場合は母集団として優先' },
+        { '項目': '応募者情報CSVファイル名', '値': getFileNamesForSettings(state.applicantFiles, state.applicantFile), '補足': '存在する場合は母集団として優先' },
         { '項目': '応募者情報CSV推定文字コード', '値': state.applicantEncoding, '補足': '' },
         { '項目': '結合キー', '値': '氏名_正規化 + 応募日時_分', '補足': 'CSV間の照合確認用' },
         { '項目': '集計キー', '値': '応募月 + 応募者名_正規化', '補足': '同月同名を1応募として集約' },
@@ -5337,11 +5398,13 @@
 
     function resetAll() {
       state.file = null;
+      state.files = [];
       state.encoding = '';
       state.text = '';
       state.headers = [];
       state.rows = [];
       state.applicantFile = null;
+      state.applicantFiles = [];
       state.applicantEncoding = '';
       state.applicantText = '';
       state.applicantHeaders = [];
@@ -5379,7 +5442,7 @@
       if (els.resultPreviewArea) els.resultPreviewArea.innerHTML = '';
       els.logArea.textContent = '';
       els.logCard.classList.add('hidden');
-      els.quickStatus.textContent = '対応履歴CSVを読み込むと集計結果を表示できます。応募者情報CSVは任意です。';
+      els.quickStatus.textContent = '対応履歴CSVを読み込むと集計結果を表示できます。応募者情報CSVは任意です。複数CSVの同時読み込みにも対応しています。';
       showInputPage();
       setHistoryDropzoneIdle();
       setApplicantDropzoneIdle();
@@ -5736,6 +5799,17 @@
       if (bytes < 1024) return `${bytes} B`;
       if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
       return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    }
+
+    function getFileNamesForSettings(files, fallbackFile) {
+      const fileList = normalizeFilesInput(files && files.length ? files : (fallbackFile ? [fallbackFile] : []));
+      return fileList.map(file => file.name || '').filter(Boolean).join(' / ');
+    }
+
+    function getOutputBaseInputName() {
+      if (state.files && state.files.length === 1) return state.files[0].name || 'etl_result.csv';
+      if (state.files && state.files.length > 1) return 'multiple_history_csv.csv';
+      return state.file ? state.file.name : 'etl_result.csv';
     }
 
     function makeOutputName(inputName) {
