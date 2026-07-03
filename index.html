@@ -1593,6 +1593,7 @@
       z-index: 1;
       background: #f8fafc;
       box-shadow: 0 1px 0 #edf2f7;
+      text-align: center;
     }
 
     .aggregate-table th.sortable-header {
@@ -1607,15 +1608,20 @@
       padding: 7px 8px;
       display: inline-flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       gap: 4px;
       background: transparent;
       color: inherit;
       box-shadow: none;
       font: inherit;
       font-weight: 800;
-      text-align: left;
+      text-align: center;
       white-space: nowrap;
+    }
+
+    .aggregate-table th:first-child .sort-header-btn {
+      justify-content: flex-start;
+      text-align: left;
     }
 
     .sort-header-btn:hover {
@@ -1630,6 +1636,8 @@
 
     .sort-header-label {
       min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .sort-indicator {
@@ -1671,6 +1679,7 @@
     .aggregate-table th:first-child {
       z-index: 34;
       background: #f8fafc;
+      text-align: left;
     }
 
     .aggregate-sticky-header-clone {
