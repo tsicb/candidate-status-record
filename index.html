@@ -68,6 +68,26 @@
       letter-spacing: .02em;
     }
 
+    .app-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .app-title-icon {
+      flex: 0 0 auto;
+      width: clamp(42px, 5vw, 56px);
+      height: clamp(42px, 5vw, 56px);
+      border-radius: 16px;
+      display: block;
+      object-fit: cover;
+      box-shadow: 0 12px 26px rgba(37, 99, 235, .18);
+    }
+
+    .app-title-text {
+      min-width: 0;
+    }
+
     .lead {
       margin: 0;
       color: var(--muted);
@@ -1905,7 +1925,7 @@
   <header>
     <div class="header-row">
       <div class="header-copy">
-        <h1>応募対応履歴 分析ツール</h1>
+        <h1 class="app-title"><img class="app-title-icon" src="./sidebar-icon.png" alt="" aria-hidden="true" /><span class="app-title-text">応募対応履歴 分析ツール</span></h1>
         <p class="lead">
           応募対応履歴CSVを読み込み、応募者単位のサマリーとピボット集計用イベントデータをExcelファイルとして出力します。処理はブラウザ内で完結し、ファイルはサーバーに送信されません。
         </p>
