@@ -18,11 +18,13 @@
       - Papa Parse: CSVパース
       - SheetJS: Excel(xlsx)生成
       - Chart.js: 集計グラフ描画
+      - html2canvas: 表示中グラフのPNG保存
   -->
   <script src="https://cdn.jsdelivr.net/npm/encoding-japanese@2.2.0/encoding.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.4/papaparse.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
     :root {
@@ -646,6 +648,222 @@
     .modal-card h3 {
       margin: 0 0 12px;
       font-size: 18px;
+    }
+
+    .help-modal {
+      width: min(980px, 100%);
+    }
+
+    .result-help-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #ffffff;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+
+    .result-help-btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .result-help-mark {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      display: inline-grid;
+      place-items: center;
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .help-modal .modal-body {
+      gap: 14px;
+      background: #f8fafc;
+    }
+
+    .help-tabs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px;
+      border: 1px solid #dbe3ef;
+      border-radius: 14px;
+      background: #eef2f7;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .help-tab-btn {
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 14px;
+      background: transparent;
+      color: #64748b;
+      box-shadow: none;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .help-tab-btn:hover {
+      transform: none;
+      background: rgba(255, 255, 255, .68);
+      color: #1e3a8a;
+    }
+
+    .help-tab-btn.is-active {
+      background: #ffffff;
+      color: #1d4ed8;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, .08);
+    }
+
+    .help-panel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .help-panel.hidden {
+      display: none !important;
+    }
+
+    .help-callout {
+      border: 1px solid rgba(37, 99, 235, .18);
+      border-left: 4px solid #2563eb;
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #eff6ff;
+      color: #334155;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .help-callout strong {
+      color: #1d4ed8;
+    }
+
+    .help-definition-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .help-definition-card {
+      min-width: 0;
+      border: 1px solid #dbe3ef;
+      border-radius: 14px;
+      padding: 14px;
+      background: #ffffff;
+    }
+
+    .help-definition-card h3 {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 7px;
+      color: #0f172a;
+      font-size: 15px;
+    }
+
+    .help-definition-card p {
+      margin: 0;
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .help-formula {
+      display: inline-block;
+      margin-top: 9px;
+      border-radius: 8px;
+      padding: 5px 8px;
+      background: #f1f5f9;
+      color: #1e3a8a;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .help-kicker {
+      color: #2563eb;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .help-rule-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .help-rule-card {
+      border: 1px solid #dbe3ef;
+      border-radius: 14px;
+      padding: 14px;
+      background: #ffffff;
+    }
+
+    .help-rule-card h3 {
+      margin: 0 0 7px;
+      font-size: 15px;
+    }
+
+    .help-rule-card p {
+      margin: 0;
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .help-current-label {
+      display: block;
+      margin-top: 10px;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .help-status-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 7px;
+    }
+
+    .help-status-chip {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(37, 99, 235, .16);
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: #f8fbff;
+      color: #1e40af;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .help-status-chip.is-muted {
+      border-color: #dbe3ef;
+      background: #f8fafc;
+      color: #64748b;
+    }
+
+    .help-footnote {
+      margin: 0;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 760px) {
+      .help-definition-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
 
@@ -1437,11 +1655,32 @@
       font-size: 12px;
     }
 
+    .aggregate-chart-metric-selector {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .aggregate-chart-metric-label {
+      flex: 0 0 auto;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
     .aggregate-chart-metrics {
       display: flex;
       flex-wrap: wrap;
       justify-content: flex-end;
-      gap: 6px;
+      gap: 2px;
+      padding: 4px;
+      border: 1px solid #dbe5f1;
+      border-radius: 12px;
+      background: #eef3f8;
+      box-shadow: inset 0 1px 2px rgba(15, 23, 42, .045);
     }
 
 
@@ -1453,6 +1692,11 @@
       gap: 8px;
     }
 
+    .aggregate-chart-card.is-capturing .aggregate-chart-actions {
+      display: none !important;
+    }
+
+    .aggregate-chart-download-button,
     .aggregate-chart-label-toggle {
       border: 1px solid rgba(15, 118, 110, .18);
       background: #ffffff;
@@ -1466,10 +1710,17 @@
       white-space: nowrap;
     }
 
+    .aggregate-chart-download-button:hover,
     .aggregate-chart-label-toggle:hover {
       background: #f0fdfa;
       color: #0f766e;
       transform: translateY(-1px);
+    }
+
+    .aggregate-chart-download-button:disabled {
+      cursor: progress;
+      opacity: .72;
+      transform: none;
     }
 
     .aggregate-chart-label-toggle.is-active {
@@ -1480,28 +1731,41 @@
     }
 
     .aggregate-chart-metric-btn {
-      border: 1px solid rgba(37, 99, 235, .16);
-      background: #ffffff;
-      color: #334155;
+      position: relative;
+      border: 0;
+      background: transparent;
+      color: #475569;
       box-shadow: none;
-      border-radius: 999px;
-      padding: 7px 10px;
+      border-radius: 8px;
+      padding: 7px 10px 8px;
       font-size: 12px;
       font-weight: 800;
       line-height: 1.15;
+      white-space: nowrap;
+      transition: background-color .16s ease, color .16s ease, box-shadow .16s ease;
     }
 
     .aggregate-chart-metric-btn:hover {
-      background: #eff6ff;
+      background: rgba(255, 255, 255, .62);
       color: #1d4ed8;
-      transform: translateY(-1px);
+      transform: none;
     }
 
     .aggregate-chart-metric-btn.is-active {
+      background: #ffffff;
+      color: #1d4ed8;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, .10), inset 0 0 0 1px rgba(148, 163, 184, .16);
+    }
+
+    .aggregate-chart-metric-btn.is-active::after {
+      content: '';
+      position: absolute;
+      left: 9px;
+      right: 9px;
+      bottom: 3px;
+      height: 2px;
+      border-radius: 999px;
       background: #2563eb;
-      color: #ffffff;
-      border-color: #2563eb;
-      box-shadow: 0 8px 16px rgba(37, 99, 235, .16);
     }
 
     .aggregate-chart-canvas-grid {
@@ -1925,7 +2189,7 @@
   <header>
     <div class="header-row">
       <div class="header-copy">
-        <h1 class="app-title"><img class="app-title-icon" src="./sidebar-icon.png" alt="" aria-hidden="true" /><span class="app-title-text">応募対応履歴 分析ツール</span></h1>
+        <h1 class="app-title"><img class="app-title-icon" src="data:image/png;base64,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" alt="" aria-hidden="true" /><span class="app-title-text">応募対応履歴 分析ツール</span></h1>
         <p class="lead">
           応募対応履歴CSVを読み込み、応募者単位のサマリーとピボット集計用イベントデータをExcelファイルとして出力します。処理はブラウザ内で完結し、ファイルはサーバーに送信されません。
         </p>
@@ -2149,6 +2413,7 @@
               <p class="small-note">サイドバーの条件を変更して再集計できます。</p>
             </div>
             <div class="result-actions">
+              <button id="resultHelpBtn" class="result-help-btn" type="button"><span class="result-help-mark" aria-hidden="true">?</span>指標ガイド</button>
               <button id="resultDownloadBtn" class="success" type="button" disabled>Excelをダウンロード</button>
               <button id="backToInputBtn" class="secondary" type="button">CSV画面に戻る</button>
             </div>
@@ -2166,6 +2431,158 @@
       </section>
     </div>
   </main>
+
+  <div id="helpModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="config-modal help-modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="helpTitle">指標ガイド</h2>
+          <p class="small-note">集計表の各指標、計算方法、ステータス判定の定義を確認できます。</p>
+        </div>
+        <button id="helpCloseBtn" class="modal-close" type="button" aria-label="指標ガイドを閉じる">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="helpTabs" class="help-tabs" role="tablist" aria-label="指標ガイドの分類">
+          <button class="help-tab-btn is-active" type="button" role="tab" aria-selected="true" data-help-tab="basic">基本指標</button>
+          <button class="help-tab-btn" type="button" role="tab" aria-selected="false" data-help-tab="duration">経過時間</button>
+          <button class="help-tab-btn" type="button" role="tab" aria-selected="false" data-help-tab="share">構成比</button>
+          <button class="help-tab-btn" type="button" role="tab" aria-selected="false" data-help-tab="rules">判定ルール</button>
+        </div>
+
+        <section class="help-panel" data-help-panel="basic">
+          <div class="help-callout">
+            <strong>対応率・面接率・内定率の分母は、すべて応募数です。</strong><br />
+            面接率を「面接数 ÷ 対応数」、内定率を「内定数 ÷ 面接数」としては計算していません。
+          </div>
+          <div class="help-definition-grid">
+            <article class="help-definition-card">
+              <h3><span>応募数</span><span class="help-kicker">母数</span></h3>
+              <p>集計対象になった応募件数です。同じ応募月・同じ応募者名は1応募としてまとめ、代表行には最も早い応募日時を使います。</p>
+            </article>
+            <article class="help-definition-card">
+              <h3><span>対応数</span><span class="help-kicker">到達数</span></h3>
+              <p>初回対応が1件以上見つかった応募数です。複数回対応していても、応募1件につき最大1件として数えます。</p>
+            </article>
+            <article class="help-definition-card">
+              <h3><span>対応率</span><span class="help-kicker">応募基準</span></h3>
+              <p>集計対象の応募のうち、初回対応が見つかった割合です。</p>
+              <span class="help-formula">対応数 ÷ 応募数 × 100</span>
+            </article>
+            <article class="help-definition-card">
+              <h3><span>面接数</span><span class="help-kicker">到達数</span></h3>
+              <p>「面接以上」として設定されたステータスへ到達した応募数です。現在の対象ステータスは「判定ルール」で確認できます。</p>
+            </article>
+            <article class="help-definition-card">
+              <h3><span>面接率</span><span class="help-kicker">応募基準</span></h3>
+              <p>集計対象の応募のうち、面接以上へ到達した割合です。</p>
+              <span class="help-formula">面接数 ÷ 応募数 × 100</span>
+            </article>
+            <article class="help-definition-card">
+              <h3><span>内定数</span><span class="help-kicker">到達数</span></h3>
+              <p>「内定以上」として設定されたステータスへ到達した応募数です。現在の対象ステータスは「判定ルール」で確認できます。</p>
+            </article>
+            <article class="help-definition-card">
+              <h3><span>内定率</span><span class="help-kicker">応募基準</span></h3>
+              <p>集計対象の応募のうち、内定以上へ到達した割合です。</p>
+              <span class="help-formula">内定数 ÷ 応募数 × 100</span>
+            </article>
+          </div>
+          <p class="help-footnote">有効応募年齢などの集計条件で除外された応募は、応募数および各率の分母には含まれません。</p>
+        </section>
+
+        <section class="help-panel hidden" data-help-panel="duration">
+          <div class="help-callout">
+            <strong>経過時間はすべて応募日時を起点にしています。</strong><br />
+            各段階へ到達した応募だけを平均対象とし、未到達者・空欄・負の経過時間は平均に含めません。
+          </div>
+          <div class="help-definition-grid">
+            <article class="help-definition-card">
+              <h3><span>初回対応まで</span><span class="help-kicker">全時間</span></h3>
+              <p>応募日時から、最初の初回対応日時までの実時間です。初回対応が見つかった応募だけで平均します。</p>
+            </article>
+            <article class="help-definition-card">
+              <h3><span>初回対応まで（営業時間内）</span><span class="help-kicker">稼働時間のみ</span></h3>
+              <p>応募日時から初回対応日時までのうち、設定した営業日・営業時間と重なる時間だけを合計して平均します。</p>
+            </article>
+            <article class="help-definition-card">
+              <h3><span>面接まで</span><span class="help-kicker">全時間</span></h3>
+              <p>応募日時から、面接以上へ最初に到達した日時までの実時間です。面接以上へ到達した応募だけで平均します。</p>
+            </article>
+            <article class="help-definition-card">
+              <h3><span>内定まで</span><span class="help-kicker">全時間</span></h3>
+              <p>応募日時から、内定以上へ最初に到達した日時までの実時間です。内定以上へ到達した応募だけで平均します。表では日・時間単位で表示します。</p>
+            </article>
+          </div>
+          <p class="help-footnote">平均値は分単位で計算し、表示時に丸めています。各経過時間は対象者が異なるため、単純な大小関係にならない場合があります。</p>
+        </section>
+
+        <section class="help-panel hidden" data-help-panel="share">
+          <div class="help-callout">
+            <strong>「率」と「構成比」は目的が異なります。</strong><br />
+            率はその行の応募を起点にした到達割合、構成比は表全体に対してその行が占めるシェアです。
+          </div>
+          <div class="help-definition-grid">
+            <article class="help-definition-card">
+              <h3><span>応募構成比</span><span class="help-kicker">全体シェア</span></h3>
+              <p>その行の応募数が、同じ表の応募総数に占める割合です。</p>
+              <span class="help-formula">その行の応募数 ÷ 表全体の応募数 × 100</span>
+            </article>
+            <article class="help-definition-card">
+              <h3><span>面接構成比</span><span class="help-kicker">全体シェア</span></h3>
+              <p>その行の面接数が、同じ表の面接総数に占める割合です。</p>
+              <span class="help-formula">その行の面接数 ÷ 表全体の面接数 × 100</span>
+            </article>
+            <article class="help-definition-card">
+              <h3><span>内定構成比</span><span class="help-kicker">全体シェア</span></h3>
+              <p>その行の内定数が、同じ表の内定総数に占める割合です。</p>
+              <span class="help-formula">その行の内定数 ÷ 表全体の内定数 × 100</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="help-panel hidden" data-help-panel="rules">
+          <div class="help-callout">
+            この画面には、<strong>現在の設定値</strong>を反映しています。定義を設定モーダルで変更した場合は、次回このガイドを開いたときに更新されます。
+          </div>
+          <div class="help-rule-stack">
+            <article class="help-rule-card">
+              <h3>応募数の集約単位</h3>
+              <p>応募月と正規化した応募者名を組み合わせたキーでまとめます。同月同名に複数行がある場合は1応募とし、最も早い応募日時を代表値にします。応募者情報CSVがある場合は、そのCSVを母集団として未対応応募者も含めます。</p>
+            </article>
+            <article class="help-rule-card">
+              <h3>初回対応の判定</h3>
+              <p>対応内容にステータス変更履歴がある場合は、未対応ステータスから別ステータスへ初めて変わった日時を使います。</p>
+              <span class="help-current-label">現在の未対応ステータス</span>
+              <div id="helpUntouchedStatus" class="help-status-chips"></div>
+            </article>
+            <article class="help-rule-card">
+              <h3>面接数・面接到達の判定</h3>
+              <p>次のいずれかのステータスへ初めて到達した応募を、面接数に含めます。</p>
+              <span class="help-current-label">現在の面接以上ステータス</span>
+              <div id="helpInterviewStatuses" class="help-status-chips"></div>
+            </article>
+            <article class="help-rule-card">
+              <h3>内定数・内定到達の判定</h3>
+              <p>次のいずれかのステータスへ初めて到達した応募を、内定数に含めます。</p>
+              <span class="help-current-label">現在の内定以上ステータス</span>
+              <div id="helpOfferStatuses" class="help-status-chips"></div>
+            </article>
+            <article class="help-rule-card">
+              <h3>採用以上の判定</h3>
+              <p>Excel出力などで採用以上到達を判定する際は、次のステータスを使います。</p>
+              <span class="help-current-label">現在の採用以上ステータス</span>
+              <div id="helpHireStatuses" class="help-status-chips"></div>
+            </article>
+            <article class="help-rule-card">
+              <h3>旧データの推定判定</h3>
+              <p id="helpFallbackDescription"></p>
+            </article>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
 
   <div id="configModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="configTitle">
     <div class="config-modal">
@@ -2262,12 +2679,14 @@
       workbook: null,
       outputName: '',
       currentLog: null,
+      currentSettings: null,
       aggregateSortState: {},
       aggregateTables: [],
       aggregateViewMode: 'metric',
       aggregateChart: null,
       aggregatePieChart: null,
       aggregateChartDataLabels: true,
+      aggregateChartMetric: 'applications',
       aggregateChartMetricByTable: {},
       activeAggregateTableId: '',
       resultStickyHeaderObserver: null,
@@ -2282,7 +2701,8 @@
       ['Encoding', () => window.Encoding],
       ['Papa Parse', () => window.Papa],
       ['SheetJS', () => window.XLSX],
-      ['Chart.js', () => window.Chart]
+      ['Chart.js', () => window.Chart],
+      ['html2canvas', () => window.html2canvas]
     ];
 
     const mappingDefs = [
@@ -2338,6 +2758,15 @@
       configBtn: document.getElementById('configBtn'),
       configModal: document.getElementById('configModal'),
       configCloseBtn: document.getElementById('configCloseBtn'),
+      resultHelpBtn: document.getElementById('resultHelpBtn'),
+      helpModal: document.getElementById('helpModal'),
+      helpCloseBtn: document.getElementById('helpCloseBtn'),
+      helpTabs: document.getElementById('helpTabs'),
+      helpUntouchedStatus: document.getElementById('helpUntouchedStatus'),
+      helpInterviewStatuses: document.getElementById('helpInterviewStatuses'),
+      helpOfferStatuses: document.getElementById('helpOfferStatuses'),
+      helpHireStatuses: document.getElementById('helpHireStatuses'),
+      helpFallbackDescription: document.getElementById('helpFallbackDescription'),
       quickStatus: document.getElementById('quickStatus'),
       applicantMappingCard: document.getElementById('applicantMappingCard'),
       applicantMappingArea: document.getElementById('applicantMappingArea'),
@@ -2449,6 +2878,7 @@
       els.aggregateTableArea.addEventListener('click', handleAggregateSortClick);
       els.aggregateTableArea.addEventListener('click', handleAggregateChartMetricClick);
       els.aggregateTableArea.addEventListener('click', handleAggregateChartLabelToggleClick);
+      els.aggregateTableArea.addEventListener('click', handleAggregateChartScreenshotClick);
       if (els.resultViewModeToggle) els.resultViewModeToggle.addEventListener('click', handleResultViewModeClick);
       els.resultTableNav.addEventListener('click', handleResultTableNavClick);
       els.resultTableNav.addEventListener('scroll', () => updateResultNavActiveRing({ instant: true }), { passive: true });
@@ -2462,10 +2892,95 @@
       els.configModal.addEventListener('click', (ev) => {
         if (ev.target === els.configModal) closeConfigModal();
       });
+      if (els.resultHelpBtn) els.resultHelpBtn.addEventListener('click', openHelpModal);
+      if (els.helpCloseBtn) els.helpCloseBtn.addEventListener('click', closeHelpModal);
+      if (els.helpTabs) els.helpTabs.addEventListener('click', handleHelpTabClick);
+      if (els.helpModal) els.helpModal.addEventListener('click', (ev) => {
+        if (ev.target === els.helpModal) closeHelpModal();
+      });
       document.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Escape' && !els.configModal.classList.contains('hidden')) closeConfigModal();
+        if (ev.key !== 'Escape') return;
+        if (els.helpModal && !els.helpModal.classList.contains('hidden')) {
+          closeHelpModal();
+          return;
+        }
+        if (!els.configModal.classList.contains('hidden')) closeConfigModal();
       });
     }
+    function openHelpModal() {
+      if (!els.helpModal) return;
+      renderHelpDynamicContent();
+      setHelpTab('basic');
+      els.helpModal.classList.remove('hidden');
+      document.body.classList.add('body-lock');
+      requestAnimationFrame(() => els.helpCloseBtn && els.helpCloseBtn.focus());
+    }
+
+    function closeHelpModal() {
+      if (!els.helpModal) return;
+      els.helpModal.classList.add('hidden');
+      if (els.configModal.classList.contains('hidden')) document.body.classList.remove('body-lock');
+      if (els.resultHelpBtn && !els.resultPage.classList.contains('hidden')) {
+        requestAnimationFrame(() => els.resultHelpBtn.focus());
+      }
+    }
+
+    function handleHelpTabClick(ev) {
+      const btn = ev.target.closest('[data-help-tab]');
+      if (!btn) return;
+      setHelpTab(btn.dataset.helpTab || 'basic');
+    }
+
+    function setHelpTab(tabName) {
+      if (!els.helpModal) return;
+      els.helpModal.querySelectorAll('[data-help-tab]').forEach(btn => {
+        const active = btn.dataset.helpTab === tabName;
+        btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      els.helpModal.querySelectorAll('[data-help-panel]').forEach(panel => {
+        panel.classList.toggle('hidden', panel.dataset.helpPanel !== tabName);
+      });
+    }
+
+    function renderHelpDynamicContent() {
+      const current = state.currentSettings;
+      const untouched = current ? current.untouched : (els.untouchedStatus.value || '未対応');
+      const interviewValues = current ? Array.from(current.interviewSet || []) : parseHelpStatusValues(els.interviewStatuses.value);
+      const offerValues = current ? Array.from(current.offerSet || []) : parseHelpStatusValues(els.offerStatuses.value);
+      const hireValues = current ? Array.from(current.hireSet || []) : parseHelpStatusValues(els.hireStatuses.value);
+      const fallbackEnabled = current ? current.useFallback : els.useFallback.value === 'true';
+
+      setHelpStatusChips(els.helpUntouchedStatus, [untouched]);
+      setHelpStatusChips(els.helpInterviewStatuses, interviewValues);
+      setHelpStatusChips(els.helpOfferStatuses, offerValues);
+      setHelpStatusChips(els.helpHireStatuses, hireValues);
+      if (els.helpFallbackDescription) {
+        els.helpFallbackDescription.textContent = fallbackEnabled
+          ? '現在は「使う」です。対応内容にステータス変更履歴がない場合、対応ステータス名から最初の到達日時を推定します。メモだけの行は推定対象から除外します。'
+          : '現在は「使わない」です。対応内容に記録されたステータス変更履歴だけで各到達日時を判定します。';
+      }
+    }
+
+    function parseHelpStatusValues(value) {
+      return String(value || '')
+        .split(/[、,\n]/)
+        .map(v => v.trim())
+        .filter(Boolean);
+    }
+
+    function setHelpStatusChips(container, values) {
+      if (!container) return;
+      container.innerHTML = '';
+      const normalized = values.length ? values : ['未設定'];
+      normalized.forEach(value => {
+        const chip = document.createElement('span');
+        chip.className = 'help-status-chip' + (value === '未設定' ? ' is-muted' : '');
+        chip.textContent = value;
+        container.appendChild(chip);
+      });
+    }
+
     function initResultStickyOffsetObserver() {
       updateResultStickyOffset();
       window.addEventListener('resize', updateResultStickyOffset);
@@ -2992,6 +3507,7 @@
       const result = applyAnonymization(rawResult, settings, log);
 
       state.result = result;
+      state.currentSettings = settings;
       state.currentLog = log;
       state.workbook = createWorkbook(result, mapping, applicantMapping, settings, log);
       state.outputName = makeOutputName(getOutputBaseInputName());
@@ -4631,15 +5147,21 @@
               <span>${escapeHtml(getChartDescription(table, activeMetric))}</span>
             </div>
             <div class="aggregate-chart-actions">
-              <div class="aggregate-chart-metrics" role="group" aria-label="グラフ表示指標">
-                ${metrics.map(metric => `
-                  <button class="aggregate-chart-metric-btn${metric.key === activeMetric ? ' is-active' : ''}" type="button" data-aggregate-table-id="${escapeHtml(table.id || '')}" data-chart-metric="${escapeHtml(metric.key)}">
-                    ${escapeHtml(metric.label)}
-                  </button>
-                `).join('')}
+              <div class="aggregate-chart-metric-selector">
+                <span class="aggregate-chart-metric-label">表示値</span>
+                <div class="aggregate-chart-metrics" role="group" aria-label="グラフ表示値">
+                  ${metrics.map(metric => `
+                    <button class="aggregate-chart-metric-btn${metric.key === activeMetric ? ' is-active' : ''}" type="button" data-aggregate-table-id="${escapeHtml(table.id || '')}" data-chart-metric="${escapeHtml(metric.key)}" aria-pressed="${metric.key === activeMetric ? 'true' : 'false'}">
+                      ${escapeHtml(metric.label)}
+                    </button>
+                  `).join('')}
+                </div>
               </div>
-              <button class="aggregate-chart-label-toggle${state.aggregateChartDataLabels ? ' is-active' : ''}" type="button" data-chart-label-toggle="true" aria-pressed="${state.aggregateChartDataLabels ? 'true' : 'false'}">
+              <button class="aggregate-chart-label-toggle${state.aggregateChartDataLabels ? ' is-active' : ''}" type="button" data-chart-label-toggle="true" aria-pressed="${state.aggregateChartDataLabels ? 'true' : 'false'}" data-screenshot-exclude="true">
                 データラベル ${state.aggregateChartDataLabels ? 'ON' : 'OFF'}
+              </button>
+              <button class="aggregate-chart-download-button" type="button" data-chart-screenshot="true" data-screenshot-exclude="true" data-tooltip="表示中のグラフをPNG保存し、クリップボードにもコピー">
+                画像保存＋コピー
               </button>
             </div>
           </div>
@@ -4766,7 +5288,7 @@
 
     function getActiveChartMetric(table) {
       const metrics = getChartMetricOptions(table);
-      const saved = state.aggregateChartMetricByTable[table.id];
+      const saved = state.aggregateChartMetric;
       if (metrics.some(metric => metric.key === saved)) return saved;
       return 'applications';
     }
@@ -5109,6 +5631,7 @@
       const tableId = btn.dataset.aggregateTableId;
       const metric = btn.dataset.chartMetric;
       if (!tableId || !metric) return;
+      state.aggregateChartMetric = metric;
       state.aggregateChartMetricByTable[tableId] = metric;
       const table = (state.aggregateTables || []).find(t => t.id === tableId);
       if (!table) return;
@@ -5124,6 +5647,109 @@
       btn.textContent = `データラベル ${state.aggregateChartDataLabels ? 'ON' : 'OFF'}`;
       const table = (state.aggregateTables || []).find(t => t.id === state.activeAggregateTableId) || (state.aggregateTables || [])[0];
       if (table) renderAggregateChart(table);
+    }
+
+    function handleAggregateChartScreenshotClick(ev) {
+      const btn = ev.target.closest('.aggregate-chart-download-button[data-chart-screenshot]');
+      if (!btn || !els.aggregateTableArea.contains(btn)) return;
+      downloadActiveAggregateChartImage(btn).catch(err => {
+        console.error(err);
+        alert('グラフ画像の保存中にエラーが発生しました。');
+      });
+    }
+
+    async function downloadActiveAggregateChartImage(btn) {
+      if (!window.html2canvas) {
+        alert('画像保存用ライブラリを読み込めませんでした。ネットワーク制限やCDNブロックがないか確認してください。');
+        return;
+      }
+      const card = btn.closest('.aggregate-chart-card');
+      if (!card) return;
+      const table = (state.aggregateTables || []).find(t => t.id === state.activeAggregateTableId) || (state.aggregateTables || [])[0];
+      const metric = table ? getChartMetricDef(table, getActiveChartMetric(table)) : null;
+      const originalText = btn.textContent;
+      let resultText = originalText || '画像保存＋コピー';
+      btn.disabled = true;
+      btn.textContent = '画像生成中...';
+      card.classList.add('is-capturing');
+      try {
+        if (state.aggregateChart && typeof state.aggregateChart.update === 'function') state.aggregateChart.update('none');
+        if (state.aggregatePieChart && typeof state.aggregatePieChart.update === 'function') state.aggregatePieChart.update('none');
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const canvas = await window.html2canvas(card, {
+          backgroundColor: '#ffffff',
+          scale: Math.min(2, window.devicePixelRatio || 1.5),
+          useCORS: true,
+          logging: false,
+          ignoreElements: (element) => Boolean(element && element.closest && element.closest('[data-screenshot-exclude="true"]'))
+        });
+        const blob = await canvasToPngBlob(canvas);
+        const copied = await copyPngBlobToClipboard(blob);
+        downloadPngBlob(blob, makeAggregateChartImageFileName(table, metric));
+        resultText = copied ? '保存・コピー済み' : '保存済み（コピー不可）';
+      } finally {
+        card.classList.remove('is-capturing');
+        btn.disabled = false;
+        btn.textContent = resultText;
+        window.setTimeout(() => {
+          if (btn.isConnected) btn.textContent = originalText || '画像保存＋コピー';
+        }, 1800);
+      }
+    }
+
+    function canvasToPngBlob(canvas) {
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(blob => {
+          if (blob) resolve(blob);
+          else reject(new Error('PNG画像の生成に失敗しました。'));
+        }, 'image/png');
+      });
+    }
+
+    async function copyPngBlobToClipboard(blob) {
+      const canWriteImage = Boolean(
+        window.isSecureContext &&
+        navigator.clipboard &&
+        typeof navigator.clipboard.write === 'function' &&
+        typeof window.ClipboardItem === 'function'
+      );
+      if (!canWriteImage) return false;
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        return true;
+      } catch (err) {
+        console.warn('グラフ画像をクリップボードへコピーできませんでした。', err);
+        return false;
+      }
+    }
+
+    function downloadPngBlob(blob, fileName) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function makeAggregateChartImageFileName(table, metric) {
+      const now = new Date();
+      const stamp = `${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}_${pad2(now.getHours())}${pad2(now.getMinutes())}`;
+      const tableTitle = table && table.title ? table.title : '集計グラフ';
+      const metricLabel = metric && metric.label ? metric.label : 'グラフ';
+      return `${sanitizeFileNamePart(tableTitle)}_${sanitizeFileNamePart(metricLabel)}_${stamp}.png`;
+    }
+
+    function sanitizeFileNamePart(value) {
+      return String(value || '')
+        .replace(/[\\/:*?"<>|]/g, ' ')
+        .replace(/\s+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 60) || 'chart';
     }
 
     function handleAggregateSortClick(ev) {
@@ -5442,10 +6068,12 @@
       state.workbook = null;
       state.outputName = '';
       state.currentLog = null;
+      state.currentSettings = null;
       state.aggregateSortState = {};
       state.aggregateTables = [];
       state.aggregateViewMode = 'metric';
       state.aggregateChartDataLabels = true;
+      state.aggregateChartMetric = 'applications';
       state.aggregateChartMetricByTable = {};
       state.activeAggregateTableId = '';
       destroyAggregateChart();
@@ -5476,6 +6104,7 @@
       setHistoryDropzoneIdle();
       setApplicantDropzoneIdle();
       closeConfigModal();
+      closeHelpModal();
     }
 
     function resetResultOnly() {
@@ -5483,10 +6112,12 @@
       state.workbook = null;
       state.outputName = '';
       state.currentLog = null;
+      state.currentSettings = null;
       state.aggregateSortState = {};
       state.aggregateTables = [];
       state.aggregateViewMode = 'metric';
       state.aggregateChartDataLabels = true;
+      state.aggregateChartMetric = 'applications';
       state.aggregateChartMetricByTable = {};
       state.activeAggregateTableId = '';
       destroyAggregateChart();
